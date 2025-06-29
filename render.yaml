@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: zproject-bot
+    env: python
+    plan: free
+    buildCommand: |
+      pip install --upgrade pip setuptools wheel
+      pip install --prefer-binary -r requirements.txt
+    startCommand: python main.py
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 10000
