@@ -4,3 +4,4 @@ requests
 gTTS
 pillow
 beautifulsoup4
+pydub

@@ -30,7 +30,7 @@ def handle_ask(bot, message):
     if not prompt:
         return bot.reply_to(message, "❓ Bạn chưa nhập câu hỏi rồi đó!")
 
-    msg_status = bot.reply_to(message, "🤖 Đang suy nghĩ...")
+    msg_status = bot.reply_to(message, "🤖")
 
     user_id = message.from_user.id
     user_name = message.from_user.first_name
