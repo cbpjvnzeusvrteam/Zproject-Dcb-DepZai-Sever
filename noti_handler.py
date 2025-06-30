@@ -1,25 +1,25 @@
 import os
 import json
-import requests
 from datetime import datetime
+
+ADMIN_ID = 5819094246
+GROUPS_FILE = "groups.json"
 
 def get_all_user_ids():
     return [int(f.replace("memory_", "").replace(".json", ""))
             for f in os.listdir() if f.startswith("memory_")]
 
-def get_group_ids_from_server():
-    try:
-        r = requests.get("https://zcode.x10.mx/groups_db.json", timeout=5)
-        text = r.text.strip()
-        if not text or text[0] not in ['[', '{']:
-            return []
-        return [g["group_id"] for g in json.loads(text)]
-    except Exception as e:
-        print(f"[Groups] ❌ {e}")
-        return []
+def get_group_ids_from_file():
+    if os.path.exists(GROUPS_FILE):
+        try:
+            with open(GROUPS_FILE, "r") as f:
+                return json.load(f)
+        except:
+            pass
+    return []
 
 def handle_noti(bot, message):
-    if message.from_user.id != 5819094246:
+    if message.from_user.id != ADMIN_ID:
         return bot.reply_to(message, "🚫 Chỉ dành cho admin.")
 
     text = message.text.replace("/noti", "").strip()
@@ -34,10 +34,10 @@ def handle_noti(bot, message):
         "<i>Gửi bởi ZProject Bot</i>"
     )
 
-    ids = set(get_all_user_ids()).union(get_group_ids_from_server())
+    all_ids = set(get_all_user_ids()).union(get_group_ids_from_file())
     success, fail = 0, 0
 
-    for cid in ids:
+    for cid in all_ids:
         try:
             bot.send_message(cid, notice, parse_mode="HTML", disable_web_page_preview=True)
             success += 1
