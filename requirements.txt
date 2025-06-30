@@ -1,5 +1,6 @@
-Flask
 pyTelegramBotAPI
-Pillow
+Flask
 requests
 gTTS
+pillow
+beautifulsoup4
