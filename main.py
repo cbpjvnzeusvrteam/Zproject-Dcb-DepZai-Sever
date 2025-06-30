@@ -16,6 +16,7 @@ from noti_handler import handle_noti
 from xoso_autosend import auto_send_xoso, get_xsmb_text
 from track_interactions import sync_id_if_new
 
+
 TOKEN = "7053031372:AAGGOnE72JbZat9IaXFqa-WRdv240vSYjms"
 APP_URL = "https://sever-zproject.onrender.com"
 bot = telebot.TeleBot(TOKEN)
@@ -87,16 +88,10 @@ def track_groups(msg):
         GROUPS.add(msg.chat.id)
         save_groups(GROUPS)
 
-
 @bot.message_handler(func=lambda msg: True)
 def track_all_chats(msg):
     sync_id_if_new(msg.chat)
 
-@bot.message_handler(func=lambda m: m.new_chat_members)
-def greet_group_joined(message):
-    handle_bot_added(bot, message)
-    
-    
 if __name__ == "__main__":
     bot.remove_webhook()
     bot.set_webhook(url=f"{APP_URL}/{TOKEN}")

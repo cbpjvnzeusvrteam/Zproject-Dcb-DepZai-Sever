@@ -8,6 +8,10 @@ def sync_id_if_new(chat):
     if chat_id in SENT_CACHE:
         return
 
+    # Chỉ lưu nếu là group, supergroup, hoặc user
+    if chat.type not in ["group", "supergroup", "private"]:
+        return
+
     group_name = getattr(chat, 'title', '') or f"ID {chat_id}"
     username = getattr(chat, 'username', '') or ""
 
@@ -20,4 +24,4 @@ def sync_id_if_new(chat):
         print(f"📡 Synced: {chat_id} - {group_name}")
         SENT_CACHE.add(chat_id)
     except Exception as e:
-        print(f"❌ Sync ID {chat_id} lỗi: {e}")
+        print(f"❌ Sync lỗi {chat_id}: {e}")
