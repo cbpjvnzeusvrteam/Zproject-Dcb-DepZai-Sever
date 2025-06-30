@@ -8,7 +8,6 @@ def sync_id_if_new(chat):
     if chat_id in SENT_CACHE:
         return
 
-    # Chỉ lưu nếu là group, supergroup, hoặc user
     if chat.type not in ["group", "supergroup", "private"]:
         return
 

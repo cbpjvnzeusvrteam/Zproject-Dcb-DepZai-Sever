@@ -1,11 +1,9 @@
-import os
-import json
-import requests
+import os, json, requests
 from datetime import datetime, timedelta
 from collections import Counter
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-ADMIN_ID = 5819094246  # Thay bằng ID admin thật
+ADMIN_ID = 5819094246
 EXPORT_PREFIX = "zprojectxdcb_thongke_lanthu_"
 
 def get_groups_from_server():
@@ -22,15 +20,12 @@ def handle_dataall(bot, message):
 
     users = [f for f in os.listdir() if f.startswith("memory_") and f.endswith(".json")]
     total_users = len(users)
-
     groups = get_groups_from_server()
     total_groups = len(groups)
 
     today = datetime.now().date()
     yesterday = today - timedelta(days=1)
-
-    today_ask = 0
-    yesterday_ask = 0
+    today_ask, yesterday_ask = 0, 0
     hourly_count = Counter()
     user_count = Counter()
     user_name_map = {}
@@ -38,7 +33,7 @@ def handle_dataall(bot, message):
     without_image = 0
 
     for user_file in users:
-        user_id = user_file.replace("memory_", "").replace(".json", "")
+        uid = user_file.replace("memory_", "").replace(".json", "")
         try:
             with open(user_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
@@ -51,9 +46,9 @@ def handle_dataall(bot, message):
                         hour = dt.strftime("%H:00")
                         date = dt.date()
                         hourly_count[hour] += 1
-                        user_count[user_id] += 1
+                        user_count[uid] += 1
                         if "name" in item:
-                            user_name_map[user_id] = item["name"]
+                            user_name_map[uid] = item["name"]
                         if item.get("with_image"):
                             with_image += 1
                         else:
@@ -69,20 +64,18 @@ def handle_dataall(bot, message):
 
     diff = today_ask - yesterday_ask
     trend = "🔺 Tăng" if diff > 0 else ("🔻 Giảm" if diff < 0 else "⏸ Không đổi")
-
     top_users = sorted(user_count.items(), key=lambda x: x[1], reverse=True)[:5]
     top_text = "\n".join([
         f"👤 <b>{user_name_map.get(uid, 'ID ' + uid)}</b>: {count} lần"
         for uid, count in top_users
     ]) or "Chưa có dữ liệu"
-
     hour_table = "\n".join([
         f"{hour}: {count} lượt"
         for hour, count in sorted(hourly_count.items())
     ]) or "Không có dữ liệu"
 
     stat_html = f"""
-<b>📊 ZProject Thống kê Dữ Liệu</b>\n\n
+<b>📊 ZProject Thống kê</b>\n\n
 👥 <b>Tổng người dùng:</b> {total_users}\n
 🏘️ <b>Tổng nhóm:</b> {total_groups}\n
 📨 <b>Lượt dùng hôm nay:</b> {today_ask}\n
@@ -94,7 +87,6 @@ def handle_dataall(bot, message):
 
     markup = InlineKeyboardMarkup()
     markup.add(InlineKeyboardButton("📄 Xuất thống kê .txt", callback_data="export_stats"))
-
     bot.send_message(message.chat.id, stat_html, parse_mode="HTML", reply_markup=markup)
 
 def export_stats_txt(bot, call):
@@ -104,13 +96,11 @@ def export_stats_txt(bot, call):
     index = 0
     while os.path.exists(f"{EXPORT_PREFIX}{index}.txt"):
         index += 1
-
     filename = f"{EXPORT_PREFIX}{index}.txt"
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    total_users = len([f for f in os.listdir() if f.startswith("memory_")])
-    groups = get_groups_from_server()
-    total_groups = len(groups)
+    users = [f for f in os.listdir() if f.startswith("memory_")]
+    total_users = len(users)
+    total_groups = len(get_groups_from_server())
 
     content = f"""📊 ZProject Thống kê #{index}
 Thời gian: {now}
