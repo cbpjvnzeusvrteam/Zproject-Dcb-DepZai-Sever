@@ -14,7 +14,7 @@ from about_handler import handle_about
 from callback import handle_retry_button, handle_tts_button
 from noti_handler import handle_noti
 from xoso_autosend import auto_send_xoso, get_xsmb_text
-from autotrack_sync import start_auto_sync
+from track_interactions import sync_id_if_new
 
 TOKEN = "7053031372:AAGGOnE72JbZat9IaXFqa-WRdv240vSYjms"
 APP_URL = "https://sever-zproject.onrender.com"
@@ -88,6 +88,10 @@ def track_groups(msg):
         save_groups(GROUPS)
 
 
+@bot.message_handler(func=lambda msg: True)
+def track_all_chats(msg):
+    sync_id_if_new(msg.chat)
+
 @bot.message_handler(func=lambda m: m.new_chat_members)
 def greet_group_joined(message):
     handle_bot_added(bot, message)
@@ -96,7 +100,6 @@ def greet_group_joined(message):
 if __name__ == "__main__":
     bot.remove_webhook()
     bot.set_webhook(url=f"{APP_URL}/{TOKEN}")
-    start_auto_sync()
     
     # 🧠 Load danh sách người dùng & nhóm để gửi xổ số
     ALL_USERS = set()
