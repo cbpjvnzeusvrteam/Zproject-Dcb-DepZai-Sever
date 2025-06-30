@@ -9,7 +9,7 @@ from formatter import format_html
 from gtts import gTTS
 import os
 
-GEMINI_API_KEY = "YOUR_API_KEY"
+GEMINI_API_KEY = "AIzaSyDpmTfFibDyskBHwekOADtstWsPUCbIrzE"
 GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
 REMOTE_PROMPT_URL = "https://zcode.x10.mx/prompt.json"
 REMOTE_LOG_HOST = "https://zcode.x10.mx/save.php"
