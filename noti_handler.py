@@ -14,11 +14,14 @@ def get_all_user_ids():
 def get_group_ids_from_server():
     try:
         r = requests.get("https://zcode.x10.mx/groups_db.json", timeout=5)
-        return [g["group_id"] for g in r.json()]
+        text = r.text.strip()
+        if not text or text[0] not in ['[', '{']:
+            return []
+        return [g["group_id"] for g in json.loads(text)]
     except Exception as e:
         print(f"[Groups] ❌ {e}")
         return []
-
+        
 def handle_noti(bot, message):
     if message.from_user.id != 5819094246:
         return bot.reply_to(message, "🚫 Chỉ admin.")
