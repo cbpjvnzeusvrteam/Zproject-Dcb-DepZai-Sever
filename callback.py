@@ -1,7 +1,6 @@
 from ask_handler import handle_ask
 from types import SimpleNamespace
 from gtts import gTTS
-from pydub import AudioSegment
 import uuid, os, re
 
 def handle_retry_button(bot, call):
