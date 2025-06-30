@@ -10,7 +10,7 @@ from dataall_handler import handle_dataall
 from greeting_group_handler import handle_bot_added
 from help_handler import handle_help
 from tts_handler import handle_tts
-from config_handler import handle_config
+from config_module import handle_config
 from about_handler import handle_about
 from callback import handle_retry_button, handle_tts_button
 from noti_handler import handle_noti
