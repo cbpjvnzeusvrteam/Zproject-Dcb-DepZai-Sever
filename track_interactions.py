@@ -1,26 +1,20 @@
-import requests
+import json
 
-SYNC_URL = "https://zcode.x10.mx/save_group.php"
-SENT_CACHE = set()
+GROUPS_FILE = "groups.json"
+TEMP_GROUPS = set()
 
-def sync_id_if_new(chat):
-    chat_id = chat.id
-    if chat_id in SENT_CACHE:
+def sync_group_locally(chat):
+    if chat.type not in ["group", "supergroup"]:
         return
 
-    if chat.type not in ["group", "supergroup", "private"]:
+    group_id = chat.id
+    if group_id in TEMP_GROUPS:
         return
 
-    group_name = getattr(chat, 'title', '') or f"ID {chat_id}"
-    username = getattr(chat, 'username', '') or ""
-
+    TEMP_GROUPS.add(group_id)
     try:
-        requests.post(SYNC_URL, json={
-            "group_id": chat_id,
-            "group_name": group_name,
-            "username": username
-        }, timeout=5)
-        print(f"📡 Synced: {chat_id} - {group_name}")
-        SENT_CACHE.add(chat_id)
+        with open(GROUPS_FILE, "w") as f:
+            json.dump(list(TEMP_GROUPS), f)
+        print(f"📝 Lưu nhóm local: {group_id}")
     except Exception as e:
-        print(f"❌ Sync lỗi {chat_id}: {e}")
+        print(f"❌ Ghi group.json lỗi: {e}")

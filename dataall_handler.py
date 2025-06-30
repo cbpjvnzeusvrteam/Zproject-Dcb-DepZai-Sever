@@ -1,18 +1,12 @@
-import os, json, requests
+import os
+import json
 from datetime import datetime, timedelta
 from collections import Counter
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 ADMIN_ID = 5819094246
+GROUPS_FILE = "groups.json"
 EXPORT_PREFIX = "zprojectxdcb_thongke_lanthu_"
-
-def get_groups_from_server():
-    try:
-        r = requests.get("https://zcode.x10.mx/groups_db.json", timeout=5)
-        data = r.json()
-        return data if isinstance(data, list) else []
-    except:
-        return []
 
 def handle_dataall(bot, message):
     if message.from_user.id != ADMIN_ID:
@@ -20,12 +14,22 @@ def handle_dataall(bot, message):
 
     users = [f for f in os.listdir() if f.startswith("memory_") and f.endswith(".json")]
     total_users = len(users)
-    groups = get_groups_from_server()
+
+    groups = []
+    if os.path.exists(GROUPS_FILE):
+        try:
+            with open(GROUPS_FILE, "r") as f:
+                groups = json.load(f)
+        except:
+            groups = []
+
     total_groups = len(groups)
 
     today = datetime.now().date()
     yesterday = today - timedelta(days=1)
-    today_ask, yesterday_ask = 0, 0
+
+    today_ask = 0
+    yesterday_ask = 0
     hourly_count = Counter()
     user_count = Counter()
     user_name_map = {}
@@ -33,7 +37,7 @@ def handle_dataall(bot, message):
     without_image = 0
 
     for user_file in users:
-        uid = user_file.replace("memory_", "").replace(".json", "")
+        user_id = user_file.replace("memory_", "").replace(".json", "")
         try:
             with open(user_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
@@ -46,9 +50,9 @@ def handle_dataall(bot, message):
                         hour = dt.strftime("%H:00")
                         date = dt.date()
                         hourly_count[hour] += 1
-                        user_count[uid] += 1
+                        user_count[user_id] += 1
                         if "name" in item:
-                            user_name_map[uid] = item["name"]
+                            user_name_map[user_id] = item["name"]
                         if item.get("with_image"):
                             with_image += 1
                         else:
@@ -64,11 +68,13 @@ def handle_dataall(bot, message):
 
     diff = today_ask - yesterday_ask
     trend = "🔺 Tăng" if diff > 0 else ("🔻 Giảm" if diff < 0 else "⏸ Không đổi")
+
     top_users = sorted(user_count.items(), key=lambda x: x[1], reverse=True)[:5]
     top_text = "\n".join([
         f"👤 <b>{user_name_map.get(uid, 'ID ' + uid)}</b>: {count} lần"
         for uid, count in top_users
     ]) or "Chưa có dữ liệu"
+
     hour_table = "\n".join([
         f"{hour}: {count} lượt"
         for hour, count in sorted(hourly_count.items())
@@ -96,16 +102,20 @@ def export_stats_txt(bot, call):
     index = 0
     while os.path.exists(f"{EXPORT_PREFIX}{index}.txt"):
         index += 1
+
     filename = f"{EXPORT_PREFIX}{index}.txt"
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    users = [f for f in os.listdir() if f.startswith("memory_")]
-    total_users = len(users)
-    total_groups = len(get_groups_from_server())
+
+    try:
+        with open(GROUPS_FILE, "r") as f:
+            groups = json.load(f)
+    except:
+        groups = []
 
     content = f"""📊 ZProject Thống kê #{index}
 Thời gian: {now}
-Tổng người dùng: {total_users}
-Tổng nhóm: {total_groups}
+Tổng người dùng: {len([f for f in os.listdir() if f.startswith("memory_")])}
+Tổng nhóm: {len(groups)}
 """
 
     with open(filename, "w", encoding="utf-8") as f:
