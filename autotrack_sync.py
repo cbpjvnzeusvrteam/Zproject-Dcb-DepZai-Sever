@@ -21,9 +21,19 @@ def get_all_ids():
 
 def load_sent_ids():
     global SENT_IDS
-    if os.path.exists(SENT_FILE):
-        SENT_IDS = set(json.load(open(SENT_FILE)))
-
+    try:
+        if os.path.exists(SENT_FILE):
+            content = open(SENT_FILE).read().strip()
+            if content.startswith("["):
+                SENT_IDS = set(json.loads(content))
+            else:
+                SENT_IDS = set()
+        else:
+            SENT_IDS = set()
+    except Exception as e:
+        print(f"[SYNC] ❌ Lỗi khi load_sent_ids(): {e}")
+        SENT_IDS = set()
+        
 def save_sent_ids():
     json.dump(list(SENT_IDS), open(SENT_FILE, "w"))
 
