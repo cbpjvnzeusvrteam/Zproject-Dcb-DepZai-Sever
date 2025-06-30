@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from collections import Counter
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-ADMIN_ID = 5819094246
+ADMIN_ID = 5819094246  # Thay bằng ID admin thật của bạn
 GROUP_FILE = "groups.json"
 EXPORT_PREFIX = "zprojectxdcb_thongke_lanthu_"
 
@@ -28,6 +28,7 @@ def handle_dataall(bot, message):
     yesterday_ask = 0
     hourly_count = Counter()
     user_count = Counter()
+    user_name_map = {}
     with_image = 0
     without_image = 0
 
@@ -41,11 +42,13 @@ def handle_dataall(bot, message):
                     if not created:
                         continue
                     try:
-                        dt = datetime.strptime(created, "%Y-%m-%d %H:%M:%S")
+                        dt = datetime.strptime(created, "%Y-%m-%d %H:%M:%S") + timedelta(hours=7)  # Giờ VN
                         hour = dt.strftime("%H:00")
                         date = dt.date()
                         hourly_count[hour] += 1
                         user_count[user_id] += 1
+                        if "name" in item:
+                            user_name_map[user_id] = item["name"]
                         if item.get("with_image"):
                             with_image += 1
                         else:
@@ -63,26 +66,28 @@ def handle_dataall(bot, message):
     trend = "🔺 Tăng" if diff > 0 else ("🔻 Giảm" if diff < 0 else "⏸ Không đổi")
 
     top_users = sorted(user_count.items(), key=lambda x: x[1], reverse=True)[:5]
-    top_text = "\n".join([f"👤 ID <code>{uid}</code>: {count} lần" for uid, count in top_users]) or "Chưa có dữ liệu"
+    top_text = "\n".join([
+        f"👤 <b>{user_name_map.get(uid, 'ID ' + uid)}</b>: {count} lần"
+        for uid, count in top_users
+    ]) or "Chưa có dữ liệu"
 
     hour_table = "\n".join([f"{hour}: {count} lượt" for hour, count in sorted(hourly_count.items())]) or "Không có dữ liệu"
 
     stat_html = f"""
-<b>📊 ZProject Thống kê tổng hợp</b>\n\n
-👥 <b>Người dùng:</b> {total_users}\n
-🏘️ <b>Nhóm:</b> {total_groups}\n
+<b>📊 ZProject Thống kê Dữ Liệu Bot</b>\n\n
+👥 <b>Tổng Người dùng:</b> {total_users}\n
+🏘️ <b>Tổng Số Nhóm:</b> {total_groups}\n
 📨 <b>Lượt Dùng Bot hôm nay:</b> {today_ask}\n
 📆 <b>So với hôm qua:</b> {diff:+d} ({trend})\n
 🖼️ Có ảnh: <b>{with_image}</b> • ❌ Không ảnh: <b>{without_image}</b>\n\n
 <b>🏆 Top người dùng:</b>\n{top_text}\n\n
-<b>⏰ Hoạt động theo giờ:</b>\n<code>{hour_table}</code>
+<b>⏰ Hoạt động theo giờ (VN):</b>\n<code>{hour_table}</code>
 """
 
     markup = InlineKeyboardMarkup()
     markup.add(InlineKeyboardButton("📄 Xuất thống kê .txt", callback_data="export_stats"))
 
     bot.send_message(message.chat.id, stat_html, parse_mode="HTML", reply_markup=markup)
-
 
 def export_stats_txt(bot, call):
     if call.from_user.id != ADMIN_ID:
@@ -94,7 +99,8 @@ def export_stats_txt(bot, call):
 
     filename = f"{EXPORT_PREFIX}{index}.txt"
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    content = f"""📊 ZProject Thống kê lần {index}\n
+
+    content = f"""📊 ZProject Thống kê #{index}
 Thời gian: {now}
 Tổng người dùng: {len([f for f in os.listdir() if f.startswith("memory_")])}
 Tổng nhóm: {len(json.load(open(GROUP_FILE))) if os.path.exists(GROUP_FILE) else 0}
