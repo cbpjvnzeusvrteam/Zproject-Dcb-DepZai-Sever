@@ -36,13 +36,11 @@ def webhook():
     bot.process_new_updates([update])
     return "!", 200
 
-@bot.message_handler(commands=["tts"])
-def tts_command(message):
-    handle_tts(bot, message)
-    
-@bot.message_handler(commands=["noti"])
-def noti_cmd(msg):
-    handle_noti(bot, msg)
+# ===== LỆNH =====
+
+@bot.message_handler(commands=["start"])
+def start_cmd(message):
+    handle_start(bot, message)
 
 @bot.message_handler(commands=["help"])
 def help_command(message):
@@ -51,24 +49,30 @@ def help_command(message):
 @bot.message_handler(commands=["about"])
 def about_command(message):
     handle_about(bot, message)
-    
+
+@bot.message_handler(commands=["ask"])
+def ask_command(message):
+    handle_ask(bot, message)
+
+@bot.message_handler(commands=["tts"])
+def tts_command(message):
+    handle_tts(bot, message)
+
+@bot.message_handler(commands=["dataall"])
+def dataall_command(message):
+    handle_dataall(bot, message)
+
+@bot.message_handler(commands=["noti"])
+def noti_cmd(msg):
+    handle_noti(bot, msg)
+
 @bot.message_handler(commands=["time"])
 def uptime(message):
     uptime = datetime.datetime.now() - START_TIME
     bot.reply_to(message, f"⏳ Bot đã chạy: {str(uptime).split('.')[0]}")
 
-@bot.message_handler(commands=["start"])
-def start_cmd(message):
-    handle_start(bot, message)
-    
-@bot.message_handler(commands=["ask"])
-def ask_command(message):
-    handle_ask(bot, message)
+# ===== NÚT CALLBACK =====
 
-@bot.message_handler(commands=["dataall"])
-def dataall_command(message):
-    handle_dataall(bot, message)
-    
 @bot.callback_query_handler(func=lambda call: call.data.startswith("retry|"))
 def retry_button(call):
     handle_retry_button(bot, call)
@@ -76,26 +80,33 @@ def retry_button(call):
 @bot.callback_query_handler(func=lambda call: call.data.startswith("tts|"))
 def tts_button(call):
     handle_tts_button(bot, call)
-    
+
 @bot.callback_query_handler(func=lambda call: call.data == "export_stats")
 def export_stats_txt(call):
     from dataall_handler import export_stats_txt
     export_stats_txt(bot, call)
 
-@bot.message_handler(func=lambda msg: True)
-def track_groups(msg):
-    if msg.chat.type in ['group', 'supergroup']:
-        GROUPS.add(msg.chat.id)
-        save_groups(GROUPS)
+# ===== GHI NHẬN KHI BOT ĐƯỢC MỜI VÀO NHÓM =====
+
+@bot.message_handler(func=lambda m: m.new_chat_members)
+def greet_group_joined(message):
+    handle_bot_added(bot, message)
+
+# ===== GHI NHẬN BẤT KỲ AI CHAT VỚI BOT (PRIVATE + GROUP) =====
 
 @bot.message_handler(func=lambda msg: True)
 def track_all_chats(msg):
+    if msg.chat.type in ['group', 'supergroup']:
+        GROUPS.add(msg.chat.id)
+        save_groups(GROUPS)
     sync_id_if_new(msg.chat)
+
+# ===== KHỞI CHẠY =====
 
 if __name__ == "__main__":
     bot.remove_webhook()
     bot.set_webhook(url=f"{APP_URL}/{TOKEN}")
-    
+
     # 🧠 Load danh sách người dùng & nhóm để gửi xổ số
     ALL_USERS = set()
     for f in os.listdir():
@@ -107,9 +118,9 @@ if __name__ == "__main__":
     ALL_GROUPS = load_groups()
     ALL_RECIPIENTS = ALL_USERS.union(ALL_GROUPS)
 
-    # ⏰ Auto gửi lời chào + xổ số
+    # ⏰ Gửi chào nhóm + xổ số mỗi chiều
     threading.Thread(target=auto_group_greeting, args=(bot, GROUPS)).start()
-    auto_send_xoso(bot, ALL_RECIPIENTS)  # Gửi XSMN + XSMB mỗi chiều
+    auto_send_xoso(bot, ALL_RECIPIENTS)
 
-    # 🚀 Khởi chạy Flask app
+    # 🚀 Chạy Flask
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
