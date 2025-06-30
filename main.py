@@ -68,9 +68,9 @@ def dataall_command(message):
 
 @bot.message_handler(commands=["noti"])
 def noti_cmd(msg):
-    sync_group_locally(message.chat)
+    sync_group_locally(msg.chat)  # ← Dùng đúng tên biến
     handle_noti(bot, msg)
-
+    
 @bot.message_handler(commands=["time"])
 def uptime(message):
     sync_group_locally(message.chat)
