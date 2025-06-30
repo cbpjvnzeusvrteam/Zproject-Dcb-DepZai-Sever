@@ -35,42 +35,49 @@ def webhook():
     update = telebot.types.Update.de_json(request.get_data().decode("utf-8"))
     bot.process_new_updates([update])
     return "!", 200
-
 # ===== LỆNH =====
 
 @bot.message_handler(commands=["start"])
 def start_cmd(message):
+    sync_id_if_new(message.chat)
     handle_start(bot, message)
 
 @bot.message_handler(commands=["help"])
 def help_command(message):
+    sync_id_if_new(message.chat)
     handle_help(bot, message)
 
 @bot.message_handler(commands=["about"])
 def about_command(message):
+    sync_id_if_new(message.chat)
     handle_about(bot, message)
 
 @bot.message_handler(commands=["ask"])
 def ask_command(message):
+    sync_id_if_new(message.chat)
     handle_ask(bot, message)
 
 @bot.message_handler(commands=["tts"])
 def tts_command(message):
+    sync_id_if_new(message.chat)
     handle_tts(bot, message)
 
 @bot.message_handler(commands=["dataall"])
 def dataall_command(message):
+    sync_id_if_new(message.chat)
     handle_dataall(bot, message)
 
 @bot.message_handler(commands=["noti"])
 def noti_cmd(msg):
+    sync_id_if_new(msg.chat)
     handle_noti(bot, msg)
 
 @bot.message_handler(commands=["time"])
 def uptime(message):
+    sync_id_if_new(message.chat)
     uptime = datetime.datetime.now() - START_TIME
     bot.reply_to(message, f"⏳ Bot đã chạy: {str(uptime).split('.')[0]}")
-
+    
 # ===== NÚT CALLBACK =====
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("retry|"))
