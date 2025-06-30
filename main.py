@@ -14,6 +14,7 @@ from about_handler import handle_about
 from callback import handle_retry_button, handle_tts_button
 from noti_handler import handle_noti
 from xoso_autosend import auto_send_xoso, get_xsmb_text
+from autotrack_sync import start_auto_sync
 
 TOKEN = "7053031372:AAGGOnE72JbZat9IaXFqa-WRdv240vSYjms"
 APP_URL = "https://sever-zproject.onrender.com"
@@ -37,7 +38,7 @@ def webhook():
 @bot.message_handler(commands=["tts"])
 def tts_command(message):
     handle_tts(bot, message)
-
+    
 @bot.message_handler(commands=["noti"])
 def noti_cmd(msg):
     handle_noti(bot, msg)
@@ -91,10 +92,12 @@ def track_groups(msg):
 def greet_group_joined(message):
     handle_bot_added(bot, message)
     
+    
 if __name__ == "__main__":
     bot.remove_webhook()
     bot.set_webhook(url=f"{APP_URL}/{TOKEN}")
-
+    start_auto_sync()
+    
     # 🧠 Load danh sách người dùng & nhóm để gửi xổ số
     ALL_USERS = set()
     for f in os.listdir():
